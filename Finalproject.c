@@ -85,20 +85,102 @@ void add_return() {
     
     printf("Return added successfully.\n");
 }
+
 //หาข้อมูล
 void search_return() {
+    char query[MAX_FIELD_LENGTH];
+    printf("Enter Return ID or Customer Name to search: ");
+    scanf(" %[^\n]", query);
+
+    Return all_returns[100];
+    int count = read_returns(all_returns, 100);
+    int found_count = 0;
+
+    printf("\nSearch Results:\n");
+    for (int i = 0; i < count; i++) {
+        if (strcmp(all_returns[i].return_id, query) == 0 || 
+            strstr(all_returns[i].customer_name, query) != NULL) {
+            printf("ID: %s, Customer: %s, Item: %s, Date: %s\n",
+                   all_returns[i].return_id,
+                   all_returns[i].customer_name,
+                   all_returns[i].item_name,
+                   all_returns[i].return_date);
+            found_count++;
+        }
+    }
+
+    if (found_count == 0) {
+        printf("No matching return found.\n");
+    }
 
 }
+
 //อัพเดทข้อมูล
 void update_return() {
+        char search_id[MAX_FIELD_LENGTH];
+    printf("Enter Return ID to update: ");
+    scanf("%s", search_id);
+
+    Return all_returns[100];
+    int count = read_returns(all_returns, 100);
+    int found = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(all_returns[i].return_id, search_id) == 0) {
+            printf("Found! Current date is %s\n", all_returns[i].return_date);
+            printf("Enter new Return Date (YYYY-MM-DD): ");
+            scanf("%s", all_returns[i].return_date);
+            found = 1;
+            break;
+        }
+    }
+
+    if (found) {
+        write_returns(all_returns, count);
+        printf("Return updated successfully.\n");
+    } else {
+        printf("Return ID not found.\n");
+    }
 
 }
+
 //ลบ
 void delete_return() {
-//แสดงทั้งหมด
+        char delete_id[MAX_FIELD_LENGTH];
+    printf("Enter Return ID to delete: ");
+    scanf("%s", delete_id);
+
+    Return all_returns[100];
+    int count = read_returns(all_returns, 100);
+    int found_index = -1;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(all_returns[i].return_id, delete_id) == 0) {
+            found_index = i;
+            break;
+        }
+    }
 }
 
+//แสดงทั้งหมด
 void list_all_returns(){
+        Return all_returns[100];
+    int count = read_returns(all_returns, 100);
+
+    if (count == 0) {
+        printf("No returns found.\n");
+        return;
+    }
+
+    printf("\n--- All Returns ---\n");
+    for (int i = 0; i < count; i++) {
+        printf("ID: %s, Customer: %s, Item: %s, Date: %s\n",
+               all_returns[i].return_id,
+               all_returns[i].customer_name,
+               all_returns[i].item_name,
+               all_returns[i].return_date);
+    }
+    printf("-------------------\n");
 
 }
 
@@ -126,7 +208,7 @@ int main() {
                 list_all_returns();
                 break;
             case 6:
-                printf("Exiting program. Goodbye!\n");
+                printf("Exiting program.\n");
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
