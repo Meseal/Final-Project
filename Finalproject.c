@@ -3,11 +3,11 @@
 #include <string.h>
 
 #define FILENAME "returns.csv"
+#define TEST_FILENAME "test_returns.csv"
 #define MAX_LINE_LENGTH 256
 #define MAX_FIELD_LENGTH 50
 #define MAX_RETURNS 100 
 
-// โครงสร้างข้อมูลสำหรับบันทึกข้อมูลการส่งคืน
 typedef struct {
     char return_id[MAX_FIELD_LENGTH];
     char customer_name[MAX_FIELD_LENGTH];
@@ -15,9 +15,8 @@ typedef struct {
     char return_date[MAX_FIELD_LENGTH];
 } Return;
 
-// อ่านข้อมูลทั้งหมดจากไฟล์ CSV
-int read_returns(Return *returns, int max_returns) {
-    FILE *file = fopen(FILENAME, "r");
+int read_returns_from_file(const char *filename, Return *returns, int max_returns) {
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         return 0;
     }
@@ -37,9 +36,12 @@ int read_returns(Return *returns, int max_returns) {
     return count;
 }
 
-// บันทึกข้อมูลทั้งหมดลงในไฟล์ CSV
-void write_returns(Return *returns, int count) {
-    FILE *file = fopen(FILENAME, "w");
+int read_returns(Return *returns, int max_returns) {
+    return read_returns_from_file(FILENAME, returns, max_returns);
+}
+
+void write_returns_to_file(const char *filename, Return *returns, int count) {
+    FILE *file = fopen(filename, "w");
     if (file == NULL) {
         printf("Error: Cannot open file for writing.\n");
         return;
@@ -55,7 +57,10 @@ void write_returns(Return *returns, int count) {
     fclose(file);
 }
 
-// ฟังก์ชันตรวจสอบว่า Return ID มั้ย
+void write_returns(Return *returns, int count) {
+    write_returns_to_file(FILENAME, returns, count);
+}
+
 int is_id_duplicate(const char *return_id, const Return *all_returns, int count) {
     for (int i = 0; i < count; i++) {
         if (strcmp(all_returns[i].return_id, return_id) == 0) {
@@ -65,7 +70,15 @@ int is_id_duplicate(const char *return_id, const Return *all_returns, int count)
     return 0;
 }
 
-//เมนู
+int find_return_by_id(const char *return_id, const Return *all_returns, int count) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(all_returns[i].return_id, return_id) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void display_menu() {
     printf("\n--- Product Return Management System ---\n");
     printf("1. Add a new return\n");
@@ -73,12 +86,13 @@ void display_menu() {
     printf("3. Update a return\n");
     printf("4. Delete a return\n");
     printf("5. List all returns\n");
-    printf("6. Exit\n");
+    printf("6. Run Unit Tests\n");
+    printf("7. Run END-TO-END Tests\n");
+    printf("8. Exit\n");
     printf("----------------------------------------\n");
     printf("Enter your choice: ");
 }
 
-//เพิ่มข้อมูล
 void add_return() {
     Return new_return;
     Return all_returns[MAX_RETURNS];
@@ -93,14 +107,12 @@ void add_return() {
     printf("Enter Return ID: ");
     scanf("%s", temp_id);
     
-    
     if (is_id_duplicate(temp_id, all_returns, count)) {
         printf("Error: Return ID '%s' already exists. Please use a unique ID.\n", temp_id);
         return;
     }
     
     strcpy(new_return.return_id, temp_id); 
-    
     while(getchar() != '\n');
     
     printf("Enter Customer Name: ");
@@ -110,7 +122,6 @@ void add_return() {
     printf("Enter Return Date (A.D.YYYY-MM-DD): ");
     scanf("%s", new_return.return_date);
     
-    
     printf("\n--- Data to be added ---\n");
     printf("ID: %s\n", new_return.return_id);
     printf("Customer: %s\n", new_return.customer_name);
@@ -118,14 +129,12 @@ void add_return() {
     printf("Date: %s\n", new_return.return_date);
     printf("------------------------\n");
     
-
     all_returns[count] = new_return;
     write_returns(all_returns, count + 1);
     
     printf("Return added successfully.\n");
 }
 
-//หาข้อมูล
 void search_return() {
     char query[MAX_FIELD_LENGTH];
     printf("Enter Return ID or Customer Name to search: ");
@@ -151,10 +160,8 @@ void search_return() {
     if (found_count == 0) {
         printf("No matching return found.\n");
     }
-
 }
 
-//อัพเดทข้อมูล
 void update_return() {
     char search_id[MAX_FIELD_LENGTH];
     printf("Enter Return ID to update: ");
@@ -215,7 +222,6 @@ void update_return() {
     }
 }
 
-//ลบ
 void delete_return() {
     char delete_id[MAX_FIELD_LENGTH];
     printf("Enter Return ID to delete: ");
@@ -256,7 +262,6 @@ void delete_return() {
     }
 }
 
-//แสดงทั้งหมด
 void list_all_returns(){
     Return all_returns[MAX_RETURNS];
     int count = read_returns(all_returns, MAX_RETURNS);
@@ -279,7 +284,196 @@ void list_all_returns(){
     printf("--------------------------------------------------------------------------------\n");
 }
 
-// Main Function
+void test_is_id_duplicate() {
+    printf("\n[TEST] Testing is_id_duplicate()...\n");
+    
+    Return test_returns[3];
+    strcpy(test_returns[0].return_id, "R001");
+    strcpy(test_returns[1].return_id, "R002");
+    strcpy(test_returns[2].return_id, "R003");
+    
+    if (is_id_duplicate("R002", test_returns, 3)) {
+        printf("PASS: Duplicate ID detected correctly\n");
+    } else {
+        printf("FAIL: Should detect duplicate ID\n");
+    }
+    
+    if (!is_id_duplicate("R999", test_returns, 3)) {
+        printf("PASS: Non-duplicate ID detected correctly\n");
+    } else {
+        printf("FAIL: Should not detect duplicate for unique ID\n");
+    }
+}
+
+void test_find_return_by_id() {
+    printf("\n[TEST] Testing find_return_by_id()...\n");
+    
+    Return test_returns[3];
+    strcpy(test_returns[0].return_id, "R001");
+    strcpy(test_returns[1].return_id, "R002");
+    strcpy(test_returns[2].return_id, "R003");
+    
+    int index = find_return_by_id("R002", test_returns, 3);
+    if (index == 1) {
+        printf("PASS: Found correct index for existing ID\n");
+    } else {
+        printf("FAIL: Should find index 1 for R002\n");
+    }
+    
+    index = find_return_by_id("R999", test_returns, 3);
+    if (index == -1) {
+        printf("PASS: Returned -1 for non-existing ID\n");
+    } else {
+        printf("FAIL: Should return -1 for non-existing ID\n");
+    }
+}
+
+void test_read_write_returns() {
+    printf("\n[TEST] Testing read/write operations...\n");
+    
+    Return test_data[2];
+    strcpy(test_data[0].return_id, "TEST001");
+    strcpy(test_data[0].customer_name, "Test Customer 1");
+    strcpy(test_data[0].item_name, "Test Item 1");
+    strcpy(test_data[0].return_date, "2025-01-01");
+    
+    strcpy(test_data[1].return_id, "TEST002");
+    strcpy(test_data[1].customer_name, "Test Customer 2");
+    strcpy(test_data[1].item_name, "Test Item 2");
+    strcpy(test_data[1].return_date, "2025-01-02");
+    
+    write_returns_to_file(TEST_FILENAME, test_data, 2);
+    
+    Return read_data[MAX_RETURNS];
+    int count = read_returns_from_file(TEST_FILENAME, read_data, MAX_RETURNS);
+    
+    if (count == 2) {
+        printf("PASS: Read correct number of records\n");
+    } else {
+        printf("FAIL: Should read 2 records, got %d\n", count);
+    }
+    
+    if (strcmp(read_data[0].return_id, "TEST001") == 0 &&
+        strcmp(read_data[1].customer_name, "Test Customer 2") == 0) {
+        printf("PASS: Data integrity maintained\n");
+    } else {
+        printf("FAIL: Data corruption detected\n");
+    }
+    
+    remove(TEST_FILENAME);
+}
+
+void run_unit_tests() {
+    printf("\n========================================\n");
+    printf("       RUNNING UNIT TESTS\n");
+    printf("========================================\n");
+    
+    test_is_id_duplicate();
+    test_find_return_by_id();
+    test_read_write_returns();
+    
+    printf("\n========================================\n");
+    printf("       UNIT TESTS COMPLETED\n");
+    printf("========================================\n");
+}
+
+void run_end_to_end_tests() {
+    printf("\n========================================\n");
+    printf("       RUNNING END-TO-END TESTS\n");
+    printf("========================================\n");
+    
+    Return test_returns[MAX_RETURNS];
+    int count;
+    
+    printf("\n[END-TO-END] Backing up original data...\n");
+    Return backup[MAX_RETURNS];
+    int backup_count = read_returns(backup, MAX_RETURNS);
+    
+    printf("\n[END-TO-END TEST 1] Testing Add Operation...\n");
+    Return new_return;
+    strcpy(new_return.return_id, "END001");
+    strcpy(new_return.customer_name, "END Test Customer");
+    strcpy(new_return.item_name, "END Test Item");
+    strcpy(new_return.return_date, "2025-10-08");
+    
+    count = read_returns(test_returns, MAX_RETURNS);
+    test_returns[count] = new_return;
+    write_returns(test_returns, count + 1);
+    
+    count = read_returns(test_returns, MAX_RETURNS);
+    int found = 0;
+    for (int i = 0; i < count; i++) {
+        if (strcmp(test_returns[i].return_id, "END001") == 0) {
+            found = 1;
+            break;
+        }
+    }
+    if (found) {
+        printf("PASS: Record added successfully\n");
+    } else {
+        printf("FAIL: Record not found after add\n");
+    }
+    
+    printf("\n[END-TO-END TEST 2] Testing Search Operation...\n");
+    int search_index = find_return_by_id("END001", test_returns, count);
+    if (search_index != -1 && strcmp(test_returns[search_index].customer_name, "END Test Customer") == 0) {
+        printf("PASS: Record found with correct data\n");
+    } else {
+        printf("FAIL: Search operation failed\n");
+    }
+    
+    printf("\n[END-TO-END TEST 3] Testing Update Operation...\n");
+    if (search_index != -1) {
+        strcpy(test_returns[search_index].customer_name, "Updated Customer");
+        write_returns(test_returns, count);
+        
+        count = read_returns(test_returns, MAX_RETURNS);
+        search_index = find_return_by_id("END001", test_returns, count);
+        if (strcmp(test_returns[search_index].customer_name, "Updated Customer") == 0) {
+            printf("PASS: Record updated successfully\n");
+        } else {
+            printf("FAIL: Update operation failed\n");
+        }
+    }
+    
+    printf("\n[END-TO-END TEST 4] Testing Delete Operation...\n");
+    search_index = find_return_by_id("END001", test_returns, count);
+    if (search_index != -1) {
+        for (int i = search_index; i < count - 1; i++) {
+            test_returns[i] = test_returns[i + 1];
+        }
+        write_returns(test_returns, count - 1);
+        
+        count = read_returns(test_returns, MAX_RETURNS);
+        if (find_return_by_id("END001", test_returns, count) == -1) {
+            printf("PASS: Record deleted successfully\n");
+        } else {
+            printf("FAIL: Delete operation failed\n");
+        }
+    }
+    
+    printf("\n[END-TO-END TEST 5] Testing Duplicate ID Prevention...\n");
+    count = read_returns(test_returns, MAX_RETURNS);
+    if (count > 0) {
+        char existing_id[MAX_FIELD_LENGTH];
+        strcpy(existing_id, test_returns[0].return_id);
+        
+        if (is_id_duplicate(existing_id, test_returns, count)) {
+            printf("PASS: Duplicate ID detected correctly\n");
+        } else {
+            printf("FAIL: Failed to detect duplicate ID\n");
+        }
+    }
+    
+    printf("\n[END-TO-END] Restoring original data...\n");
+    write_returns(backup, backup_count);
+    printf("Original data restored\n");
+    
+    printf("\n========================================\n");
+    printf("       END-TO-END TESTS COMPLETED\n");
+    printf("========================================\n");
+}
+
 int main() {
     int choice;
     do {
@@ -309,12 +503,18 @@ int main() {
                 list_all_returns();
                 break;
             case 6:
-                printf("Exiting program. Goodbye! 👋\n");
+                run_unit_tests();
+                break;
+            case 7:
+                run_end_to_end_tests();
+                break;
+            case 8:
+                printf("Exiting program. Goodbye!\n");
                 break;
             default:
                 printf("Invalid choice. Please try again.\n");
         }
-    } while (choice != 6);
+    } while (choice != 8);
 
     return 0;
 }
