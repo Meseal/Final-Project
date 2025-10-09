@@ -1,0 +1,28 @@
+========================================
+       RUNNING END-TO-END TESTS
+========================================
+
+[END-TO-END] Backing up original data...
+Backup complete.
+
+[END-TO-END TEST 1] Testing Add Operation...
+PASS: Record added successfully
+
+[END-TO-END TEST 2] Testing Search Operation...
+PASS: Record found with correct data
+
+[END-TO-END TEST 3] Testing Update Operation...
+PASS: Record updated successfully
+
+[END-TO-END TEST 4] Testing Delete Operation...
+PASS: Record deleted successfully
+
+[END-TO-END TEST 5] Testing Duplicate ID Prevention...
+PASS: Duplicate ID detected correctly
+
+[END-TO-END] Restoring original data...
+Original data restored
+
+========================================
+       END-TO-END TESTS COMPLETED
+========================================

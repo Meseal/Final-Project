@@ -8,6 +8,8 @@
 #define MAX_FIELD_LENGTH 50
 #define MAX_RETURNS 100 
 
+
+
 typedef struct {
     char return_id[MAX_FIELD_LENGTH];
     char customer_name[MAX_FIELD_LENGTH];
